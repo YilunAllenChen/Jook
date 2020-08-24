@@ -5,11 +5,11 @@ from datetime import datetime
 
 
 class Hook():
-    def __init__(self, url: str):
+    def __init__(self, url: str, *args, **kwargs):
         self.url = url
 
         self.raw_response = None
-        self.bs = None
+        self.bs = BS('','html.parser')
 
         self.update()
     def get_raw_html(self):
@@ -20,17 +20,18 @@ class Hook():
         self.raw_response = get(self.url)
         self.bs = BS(self.raw_response.text, 'html.parser')
 
+
     def get_jobs(self):
         raise NotImplementedError("Can't use generic Hook class.")
-    def get_titles(self):
+    def parse_jobs(self):
         raise NotImplementedError("Can't use generic Hook class.")
 
 
 
 
 class Hook_Google_X(Hook):
-    def __init__(self):
-        super().__init__(url='https://x.company/careers-at-x/')
+    def __init__(self, *args, **kwargs):
+        super().__init__(url='https://x.company/careers-at-x/', *args, **kwargs)
     def get_jobs(self):
         return self.bs.findAll('li',attrs={'class': 'job-listing js-job-listing -visible'})
     
@@ -46,4 +47,12 @@ class Hook_Google_X(Hook):
         } for job in self.get_jobs()]
         return jobs_dict
 
-pprint(Hook_Google_X().parse_jobs())
+class Hook_Google(Hook):
+    def __init__(self, *args, **kwargs):
+        super().__init__(url='https://careers.google.com/jobs/results/?company=Google&employment_type=INTERN&hl=en_US&jlo=en_US&q=&sort_by=relevance', *args, **kwargs)
+    def get_jobs(self):
+        return self.bs.findAll('a')
+
+
+
+print(Hook_Google().get_jobs())
